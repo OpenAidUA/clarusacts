@@ -33,11 +33,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 grid grid-cols-[280px_1fr] min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-gray-900 grid grid-cols-[280px_1fr] min-h-screen`}
       >
         <Sidebar />
         <main className="w-full">
-          <div className="max-w-5xl mx-auto p-6 md:p-10">{children}</div>
+          <div className="max-w-7xl h-full mx-auto p-6 md:p-10">{children}</div>
         </main>
       </body>
     </html>
