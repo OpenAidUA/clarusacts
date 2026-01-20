@@ -1,0 +1,32 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Act {
+    id              String   @id @default(uuid())
+    data            Json
+    templateVersion String
+    status          String   @default("draft")
+    createdBy       String?
+    createdAt       DateTime @default(now())
+    pdfs            ActPdf[]
+
+    @@index([templateVersion])
+}
+
+model ActPdf {
+    id              String   @id @default(uuid())
+    act             Act      @relation(fields: [actId], references: [id])
+    actId           String
+    templateVersion String
+    checksum        String
+    fileUrl         String
+    size            Int
+    generatedAt     DateTime @default(now())
+
+    @@index([actId])
+}
