@@ -21,7 +21,7 @@ export const ActDocumentSchema = z.object({
   meta: z.object({
     number: z.string(),
     city: z.string().optional(),
-    date: z.string(),
+    date: z.iso.datetime(),
   }),
   parties: z.object({
     client: z.object({

@@ -6,15 +6,45 @@ datasource db {
     provider = "postgresql"
 }
 
+enum ActStatus {
+    draft
+    generating
+    ready
+    failed
+}
+
+model User {
+    id        String   @id @default(uuid())
+    name      String
+    edrpou    String? // ЕДРПОУ / ИНН
+    email     String? // если будет auth
+    phone     String?
+    avatarUrl String?
+    createdAt DateTime @default(now())
+
+    clients Client[]
+    acts    Act[]
+}
+
 model Act {
-    id              String   @id @default(uuid())
+    id String @id @default(uuid())
+
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    client   Client @relation(fields: [clientId], references: [id])
+    clientId String
+
     data            Json
     templateVersion String
-    status          String   @default("draft")
-    createdBy       String?
-    createdAt       DateTime @default(now())
-    pdfs            ActPdf[]
+    status          ActStatus @default(draft)
 
+    createdAt DateTime @default(now())
+
+    pdfs ActPdf[]
+
+    @@index([userId])
+    @@index([clientId])
     @@index([templateVersion])
 }
 
@@ -29,4 +59,23 @@ model ActPdf {
     generatedAt     DateTime @default(now())
 
     @@index([actId])
+}
+
+model Client {
+    id     String @id @default(uuid())
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    name        String
+    edrpou      String?
+    contactName String?
+    phone       String?
+    email       String?
+    avatarUrl   String?
+
+    createdAt DateTime @default(now())
+
+    acts Act[]
+
+    @@index([userId])
 }
