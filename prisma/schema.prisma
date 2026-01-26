@@ -29,11 +29,13 @@ model User {
 model Act {
     id String @id @default(uuid())
 
+    clientSnapshot Json
+
     user   User   @relation(fields: [userId], references: [id])
     userId String
 
-    client   Client @relation(fields: [clientId], references: [id])
-    clientId String
+    clientId String?
+    client   Client? @relation(fields: [clientId], references: [id])
 
     data            Json
     templateVersion String
