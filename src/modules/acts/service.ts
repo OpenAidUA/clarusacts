@@ -2,32 +2,49 @@ import { prisma } from '../../../prisma/prisma-client';
 import { calculateTotals } from './helpers';
 import { CreateActRequest } from './domain';
 
-export async function createAct(userId: string, payload: CreateActRequest) {
-  const validatedAct = calculateTotals(payload.act);
+export async function createAct(
+  organizationId: string,
+  userId: string,
+  payload: CreateActRequest,
+) {
+  return await prisma.$transaction(async (tx) => {
+    const validatedAct = calculateTotals(payload.act);
 
-  let clientId: string | null = payload.client.id;
-  const clientSnapshot = payload.client.snapshot;
+    let clientId: string | null = payload.client.id ?? null;
+    const clientSnapshot = payload.client.snapshot;
 
-  if (payload.client.save === true && !clientId) {
-    const client = await prisma.client.create({
+    if (clientId) {
+      const exists = await tx.client.findFirst({
+        where: { id: clientId, organizationId },
+      });
+
+      if (!exists) {
+        throw new Error('Client not found');
+      }
+    }
+
+    if (payload.client.save === true && !clientId) {
+      const client = await tx.client.create({
+        data: {
+          ...clientSnapshot,
+          organizationId,
+        },
+      });
+      clientId = client.id;
+    }
+
+    const act = await tx.act.create({
       data: {
-        ...clientSnapshot,
         userId,
+        organizationId,
+        clientId,
+        clientSnapshot,
+        data: validatedAct,
+        templateVersion: 'v1',
+        status: 'draft',
       },
     });
-    clientId = client.id;
-  }
 
-  const act = await prisma.act.create({
-    data: {
-      userId,
-      clientId,
-      clientSnapshot,
-      data: validatedAct,
-      templateVersion: 'v1',
-      status: 'draft',
-    },
+    return act;
   });
-
-  return act;
 }

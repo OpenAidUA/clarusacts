@@ -13,60 +13,54 @@ enum ActStatus {
     failed
 }
 
+enum OrganizationRole {
+    OWNER
+    MEMBER
+}
+
 model User {
     id        String   @id @default(uuid())
     name      String
-    edrpou    String? // ЕДРПОУ / ИНН
-    email     String? // если будет auth
+    email     String?  @unique
     phone     String?
     avatarUrl String?
     createdAt DateTime @default(now())
 
+    memberships OrganizationMember[]
+    acts        Act[]
+}
+
+model Organization {
+    id        String   @id @default(uuid())
+    name      String
+    edrpou    String?
+    avatarUrl String?
+    createdAt DateTime @default(now())
+
+    members OrganizationMember[]
     clients Client[]
     acts    Act[]
 }
 
-model Act {
-    id String @id @default(uuid())
+model OrganizationMember {
+    id   String           @id @default(uuid())
+    role OrganizationRole @default(OWNER)
 
-    clientSnapshot Json
-
-    user   User   @relation(fields: [userId], references: [id])
     userId String
+    user   User   @relation(fields: [userId], references: [id])
 
-    clientId String?
-    client   Client? @relation(fields: [clientId], references: [id])
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id])
 
-    data            Json
-    templateVersion String
-    status          ActStatus @default(draft)
-
-    createdAt DateTime @default(now())
-
-    pdfs ActPdf[]
-
-    @@index([userId])
-    @@index([clientId])
-    @@index([templateVersion])
-}
-
-model ActPdf {
-    id              String   @id @default(uuid())
-    act             Act      @relation(fields: [actId], references: [id])
-    actId           String
-    templateVersion String
-    checksum        String
-    fileUrl         String
-    size            Int
-    generatedAt     DateTime @default(now())
-
-    @@index([actId])
+    @@unique([userId, organizationId])
+    @@index([organizationId])
 }
 
 model Client {
-    id     String @id @default(uuid())
-    user   User   @relation(fields: [userId], references: [id])
-    userId String
+    id String @id @default(uuid())
+
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id])
 
     name        String
     edrpou      String?
@@ -79,5 +73,52 @@ model Client {
 
     acts Act[]
 
+    @@index([organizationId])
+}
+
+model Act {
+    id String @id @default(uuid())
+
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id])
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+
+    clientId String?
+    client   Client? @relation(fields: [clientId], references: [id])
+
+    clientSnapshot Json
+
+    /**
+     * full  ActDocument (items, totals, meta, etc)
+     */
+    data Json
+
+    templateVersion String
+    status          ActStatus @default(draft)
+
+    createdAt DateTime @default(now())
+
+    pdfs ActPdf[]
+
+    @@index([organizationId])
     @@index([userId])
+    @@index([clientId])
+}
+
+model ActPdf {
+    id String @id @default(uuid())
+
+    actId String
+    act   Act    @relation(fields: [actId], references: [id])
+
+    templateVersion String
+    checksum        String
+    fileUrl         String
+    size            Int
+
+    generatedAt DateTime @default(now())
+
+    @@index([actId])
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 // import { getSessionUser } from '@/shared/auth';
 import { CreateActRequestSchema } from '@/modules/acts/domain';
 import { createAct } from '@/modules/acts/service';
+import { ZodError } from 'zod';
 
 export async function POST(req: Request) {
   try {
@@ -20,9 +21,9 @@ export async function POST(req: Request) {
       status: act.status,
     });
   } catch (err: any) {
-    if (err.name === 'ZodError') {
+    if (err instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: err.errors },
+        { error: 'Validation error', details: err.message },
         { status: 400 },
       );
     }
