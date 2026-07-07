@@ -42,7 +42,8 @@ export async function middleware(request: NextRequest) {
     path === '/login' ||
     path === '/register' ||
     path === '/privacy' ||
-    path === '/terms'
+    path === '/terms' ||
+    path === '/recovery'
   ) {
     return response;
   }
