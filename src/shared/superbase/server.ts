@@ -1,8 +1,7 @@
-import { headers, cookies } from 'next/headers';
+import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 
 export const createSupabaseServerClient = async () => {
-  const requestHeaders = await headers();
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -10,21 +9,15 @@ export const createSupabaseServerClient = async () => {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
-        getAll() {
-          return (
-            requestHeaders
-              .get('cookie')
-              ?.split('; ')
-              .map((cookie) => {
-                const [name, ...rest] = cookie.split('=');
-                return { name, value: rest.join('=') };
-              }) ?? []
-          );
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set({ name, value, ...options });
-          });
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Server Component
+          }
         },
       },
     },

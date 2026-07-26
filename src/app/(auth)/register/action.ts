@@ -1,20 +1,10 @@
 'use server';
 
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/shared/superbase/server';
+
 import { registerSchema } from './schema';
 import { redirect } from 'next/navigation';
-
-export type RegisterState = {
-  errors?: {
-    name?: string[];
-    organizationName?: string[];
-    email?: string[];
-    password?: string[];
-    _form?: string[];
-  };
-  message?: string;
-} | null;
+import { RegisterState } from './types';
 
 export async function registerAction(
   prevState: RegisterState,
@@ -35,49 +25,10 @@ export async function registerAction(
   }
 
   const { email, password, name, organizationName } = validatedFields.data;
-  const cookieStore = await cookies();
 
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  ) {
-    console.error('Missing Supabase env vars', {
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-        !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    });
-    return {
-      errors: {
-        _form: ['Server configuration error. Contact administrator.'],
-      },
-      message: 'Server configuration error.',
-    };
-  }
+  const supabase = await createSupabaseServerClient();
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    },
-  );
-
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
