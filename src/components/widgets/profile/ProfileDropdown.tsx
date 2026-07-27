@@ -49,7 +49,7 @@ export const ProfileDropdown = () => {
             <button
               type="button"
               aria-label="Открыть меню профиля"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 cursor-pointer transition-colors"
             >
               {initials}
             </button>

@@ -1,18 +1,10 @@
 'use server';
 
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/shared/superbase/server';
 import { loginSchema } from './schema';
 import { redirect } from 'next/navigation';
 
-export type LoginState = {
-  errors?: {
-    email?: string[];
-    password?: string[];
-    _form?: string[];
-  };
-  message?: string;
-} | null;
+import { LoginState } from './types';
 
 export async function loginAction(
   prevState: LoginState,
@@ -31,30 +23,8 @@ export async function loginAction(
   }
 
   const { email, password } = validatedFields.data;
-  const cookieStore = await cookies();
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    },
-  );
+  const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase.auth.signInWithPassword({
     email,

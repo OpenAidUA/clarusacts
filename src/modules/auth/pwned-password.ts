@@ -1,5 +1,3 @@
-// lib/pwned-password.ts
-
 export async function isPasswordPwned(password: string): Promise<boolean> {
   if (!password) return false;
 
@@ -36,4 +34,10 @@ export async function isPasswordPwned(password: string): Promise<boolean> {
     console.error('Помилка перевірки пароля:', error);
     return false;
   }
+}
+
+export async function checkPasswordPwned(password: string): Promise<boolean> {
+  if (password.length < 10) return true;
+  const isPwned = await isPasswordPwned(password);
+  return !isPwned;
 }
