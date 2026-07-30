@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, CheckCircle, Loader, Send, X } from 'react-feather';
@@ -209,10 +210,12 @@ export default function FeedbackForm() {
                   key={previewUrl}
                   className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={previewUrl}
-                    alt={file.name}
+                    alt="Попередній перегляд скриншота"
+                    width={320}
+                    height={180}
+                    unoptimized
                     className="aspect-video h-full w-full object-cover"
                   />
                   <button
