@@ -3,6 +3,11 @@ import withPWAInit from 'next-pwa';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '8mb',
+    },
+  },
   // Exclude Prisma from client-side bundles (works with both Webpack and Turbopack)
   serverExternalPackages: ['@prisma/client', 'prisma'],
   webpack: (config, { isServer }) => {

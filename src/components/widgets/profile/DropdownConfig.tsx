@@ -1,10 +1,15 @@
-import { User, Lock, Shield } from 'react-feather';
+import { User, Lock, MessageSquare, Shield } from 'react-feather';
 
 export const dropdownConfig = [
   {
     link: '/settings',
     label: 'Налаштування',
     icon: <User size={22} />,
+  },
+  {
+    link: '/feedback',
+    label: 'Зворотний зв’язок',
+    icon: <MessageSquare size={22} />,
   },
   {
     link: '/privacy',
