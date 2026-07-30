@@ -20,6 +20,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Feedback email setup
+
+Feedback from authenticated users is delivered through [Resend](https://resend.com). Add these server-only variables to the deployment environment:
+
+```env
+RESEND_API_KEY=re_...
+FEEDBACK_FROM_EMAIL="Akkta Feedback <feedback@your-verified-domain.com>"
+FEEDBACK_TO_EMAIL=your-inbox@example.com
+```
+
+`FEEDBACK_FROM_EMAIL` must use a domain verified in Resend. The author’s account email is set as the email reply address. Screenshots are validated as PNG, JPEG, or WEBP and are attached directly to the email; they are not stored by the application.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
