@@ -17,25 +17,26 @@ const initialState = {
   errors: {},
 };
 
-export interface ClientFormProps {
-  mode?: 'create' | 'edit';
-  clientId?: string;
-  defaultValues?: Partial<CreateClientRequest>;
-}
+type ClientFormProps =
+  | {
+      mode?: 'create';
+      clientId?: never;
+      defaultValues?: Partial<CreateClientRequest>;
+    }
+  | {
+      mode: 'edit';
+      clientId: string;
+      defaultValues?: Partial<CreateClientRequest>;
+    };
 
-const ClientForm = ({
-  mode = 'create',
-  clientId,
-  defaultValues,
-}: ClientFormProps) => {
-  const createAction = useActionState(createClientAction, initialState);
-  const updateAction = useActionState(
-    clientId ? updateClientAction.bind(null, clientId) : createClientAction,
-    initialState,
-  );
-
-  const [state, action, isPending] =
-    mode === 'edit' ? updateAction : createAction;
+const ClientForm = (props: ClientFormProps) => {
+  const mode = props.mode ?? 'create';
+  const { defaultValues } = props;
+  const clientAction =
+    props.mode === 'edit'
+      ? updateClientAction.bind(null, props.clientId)
+      : createClientAction;
+  const [state, action, isPending] = useActionState(clientAction, initialState);
 
   const {
     register,

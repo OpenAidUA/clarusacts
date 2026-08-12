@@ -2,6 +2,15 @@ export { Button } from './button';
 export { Input } from './input';
 export { Label } from './label';
 export {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from './pagination';
+export {
   Select,
   SelectGroup,
   SelectValue,

@@ -8,10 +8,17 @@ import { format } from 'date-fns';
 import { uk } from 'date-fns/locale';
 import OfflineSyncBanner from './OfflineSyncBanner';
 import { DownloadButton } from '@/components/widgets/acts/DownloadButton';
+import { parsePage } from '@/lib/pagination';
+import { PaginationControls } from '@/shared/components/PaginationControls';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Acts() {
+interface ActsPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function Acts({ searchParams }: ActsPageProps) {
+  const { page: pageParam } = await searchParams;
   const supabase = await createSupabaseServerClient();
 
   const {
@@ -20,14 +27,14 @@ export default async function Acts() {
 
   if (!user) return null;
 
-  const acts = await getUserActs(user.id);
+  const acts = await getUserActs(user.id, parsePage(pageParam));
 
   return (
     <>
       <OfflineSyncBanner />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Мої Акти</h1>
-        {acts.length > 0 && (
+        {acts.total > 0 && (
           <Link href="/acts/create">
             <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
               <Plus size={18} />
@@ -37,7 +44,7 @@ export default async function Acts() {
         )}
       </div>
 
-      {acts.length === 0 ? (
+      {acts.total === 0 ? (
         <EmptyPagePlaceholder
           icon={<FilePlus size={24} className="text-slate-400" />}
           title="Актів ще не створено"
@@ -54,8 +61,9 @@ export default async function Acts() {
           </Link>
         </EmptyPagePlaceholder>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
+        <>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
               <tr>
                 <th className="px-6 py-4 whitespace-nowrap">Номер / Дата</th>
@@ -66,7 +74,7 @@ export default async function Acts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {acts.map((act) => {
+              {acts.items.map((act) => {
                 const actData = act.data;
                 const actNumber = actData?.meta?.number || '—';
                 const dateStr = actData?.meta?.date
@@ -134,8 +142,14 @@ export default async function Acts() {
                 );
               })}
             </tbody>
-          </table>
-        </div>
+            </table>
+          </div>
+          <PaginationControls
+            page={acts.page}
+            totalPages={acts.totalPages}
+            pathname="/acts"
+          />
+        </>
       )}
     </>
   );

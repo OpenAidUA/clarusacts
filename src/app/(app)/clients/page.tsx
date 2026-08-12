@@ -1,21 +1,24 @@
-import { getOrganizationClients } from '@/modules/clients/service';
+import { getPaginatedOrganizationClients } from '@/modules/clients/service';
 import { createSupabaseServerClient } from '@/shared/superbase/server';
 import { prisma } from '@/lib/db';
 import { ClientsToolbar } from '@/components/widgets/clients/ClientsToolbar';
 import ClientsList from '@/components/widgets/clients/ClientsList';
 import { ClientsEmptyState } from '@/components/widgets/clients/ClientsEmptyState';
 import { ClientsPageHeader } from '@/components/widgets/clients/ClientsPageHeader';
+import { parsePage } from '@/lib/pagination';
+import { PaginationControls } from '@/shared/components/PaginationControls';
 
 interface ClientsPageProps {
   searchParams: Promise<{
     q?: string;
     sort?: string;
     order?: string;
+    page?: string;
   }>;
 }
 
 export default async function Clients({ searchParams }: ClientsPageProps) {
-  const { q, sort, order } = await searchParams;
+  const { q, sort, order, page: pageParam } = await searchParams;
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -41,12 +44,13 @@ export default async function Clients({ searchParams }: ClientsPageProps) {
           : 'desc';
 
   const clients = membership
-    ? await getOrganizationClients(membership.organizationId, {
+    ? await getPaginatedOrganizationClients(membership.organizationId, {
         search: q,
         sortBy,
         sortOrder,
+        page: parsePage(pageParam),
       })
-    : [];
+    : { items: [], page: 1, pageSize: 10, total: 0, totalPages: 0 };
 
   const hasAnyClients = membership
     ? (await prisma.client.count({
@@ -66,10 +70,16 @@ export default async function Clients({ searchParams }: ClientsPageProps) {
             search={q ?? ''}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            total={clients.length}
+            total={clients.total}
           />
 
-          <ClientsList clients={clients} searchQuery={q || ''} />
+          <ClientsList clients={clients.items} searchQuery={q || ''} />
+          <PaginationControls
+            page={clients.page}
+            totalPages={clients.totalPages}
+            pathname="/clients"
+            searchParams={{ q, sort, order }}
+          />
         </>
       )}
     </>

@@ -70,7 +70,7 @@ export function ClientsToolbar({
       }
 
       debounceRef.current = setTimeout(() => {
-        updateParams({ q: value || undefined });
+        updateParams({ q: value || undefined, page: undefined });
       }, 500);
     },
     [updateParams],
@@ -88,7 +88,7 @@ export function ClientsToolbar({
   const handleSortChange = useCallback(
     (value: string) => {
       const [field, order] = value.split('-') as [SortField, SortOrder];
-      updateParams({ sort: field, order });
+      updateParams({ sort: field, order, page: undefined });
     },
     [updateParams],
   );
