@@ -5,6 +5,11 @@ import { calculateTotals, checksumBuffer } from './helpers';
 import { CreateActRequest } from './domain';
 import type { ActWithClient } from './types';
 import { generateActPdf } from './pdf';
+import {
+  normalizePage,
+  PAGE_SIZE,
+  type PaginatedResult,
+} from '@/lib/pagination';
 
 const PDF_BUCKET = process.env.SUPABASE_PDFS_BUCKET || 'acts-pdfs';
 
@@ -55,20 +60,30 @@ export async function createAct(
   });
 }
 
-export async function getUserActs(userId: string): Promise<ActWithClient[]> {
+export async function getUserActs(
+  userId: string,
+  requestedPage = 1,
+): Promise<PaginatedResult<ActWithClient>> {
+  const total = await prisma.act.count({ where: { userId } });
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const page =
+    totalPages === 0 ? 1 : Math.min(normalizePage(requestedPage), totalPages);
+
   const acts = await prisma.act.findMany({
-    where: {
-      userId,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      client: true,
-    },
+    where: { userId },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+    include: { client: true },
   });
 
-  return acts as unknown as ActWithClient[];
+  return {
+    items: acts as unknown as ActWithClient[],
+    page,
+    pageSize: PAGE_SIZE,
+    total,
+    totalPages,
+  };
 }
 
 export async function getActById(
